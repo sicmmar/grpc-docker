@@ -1,0 +1,27 @@
+version: "2.2"
+services:
+  grpcserver:
+    container_name: servidor
+    restart: always
+    build: ./servidor
+    ports:
+      - "8081:8081"
+    networks:
+      - grpc
+
+  grpcclient:
+    container_name: cliente
+    restart: always
+    environment:
+      - CLIENT_HOST=:8080
+      - SERVER_HOST=grpcserver:8081
+      - NAME=grpcInstancia
+    build: ./cliente
+    ports:
+      - "8080:8080"
+    networks:
+      - grpc
+
+networks:
+  grpc:
+    driver: "bridge"
