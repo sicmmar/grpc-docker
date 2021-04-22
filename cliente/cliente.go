@@ -2,28 +2,29 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"log"
 	"net/http"
 
+	user_pb "grpccliente/user.pb"
+
 	"google.golang.org/grpc"
-	"grpccliente/user.pb/user.pb"
 )
 
-type userStruct struct{
-	Name string
-	Location string
-	Age int64
-	Infectedtype string
-	State string
+type userStruct struct {
+	Name        string
+	Location    string
+	Gender      string
+	Age         int64
+	VaccineType string
 }
 
-func registrarUsuario(nameparam string, locationparam string, ageparam int64, infectedtypeparam string, stateparam string) {
-	server_host := os.Getenv("SERVER_HOST")
-	//server_host := "0.0.0.0:8081"
+func registrarUsuario(nameparam string, locationparam string, genderparam string, ageparam int64, vaccinetypeparam string) {
+	//server_host := os.Getenv("SERVER_HOST")
+	server_host := "0.0.0.0:8081"
 	fmt.Println("Enviando peticion ...")
 
 	cc, err := grpc.Dial(server_host, grpc.WithInsecure())
@@ -40,11 +41,11 @@ func registrarUsuario(nameparam string, locationparam string, ageparam int64, in
 
 	request := &user_pb.UserRequest{
 		User: &user_pb.Usuario{
-			Name:         nameparam,
-			Location:     locationparam,
-			Age:          ageparam,
-			Infectedtype: infectedtypeparam,
-			State:        stateparam,
+			Name:        nameparam,
+			Location:    locationparam,
+			Gender:      genderparam,
+			Age:         ageparam,
+			VaccineType: vaccinetypeparam,
 		},
 	}
 
@@ -59,12 +60,12 @@ func registrarUsuario(nameparam string, locationparam string, ageparam int64, in
 
 }
 
-func http_server(w http.ResponseWriter, r *http.Request){
+func http_server(w http.ResponseWriter, r *http.Request) {
 	instance_name := os.Getenv("NAME")
 	//instance_name := "grpcInstancia"
 	fmt.Println("Manejando peticion HTTP cliente: ", instance_name)
 
-	if r.URL.Path != "/"{
+	if r.URL.Path != "/" {
 		http.Error(w, "404 No encontrado.", http.StatusNotFound)
 		return
 	}
@@ -72,7 +73,7 @@ func http_server(w http.ResponseWriter, r *http.Request){
 	switch r.Method {
 	case "GET":
 		fmt.Println("Raiz de HTTP para cliente")
-		http.StatusText(202)
+		http.StatusText(http.StatusAccepted)
 
 	case "POST":
 		fmt.Println("Iniciando envio de mensajes")
@@ -81,7 +82,7 @@ func http_server(w http.ResponseWriter, r *http.Request){
 		var us userStruct
 		err := decoder.Decode(&us)
 
-		if err != nil{
+		if err != nil {
 			fmt.Println("Error al decodificar json de locust: %v", err)
 		}
 
@@ -89,8 +90,8 @@ func http_server(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w, "Nombre es: %s\n", us.Name)
 
 		//enviar el mensaje
-		registrarUsuario(us.Name, us.Location, us.Age, us.Infectedtype, us.State)
-	
+		registrarUsuario(us.Name, us.Location, us.Gender, us.Age, us.VaccineType)
+
 	default:
 		fmt.Fprintf(w, "Metodo %s no soportado \n", r.Method)
 		return
@@ -98,12 +99,12 @@ func http_server(w http.ResponseWriter, r *http.Request){
 }
 
 func main() {
-	instance_name := os.Getenv("NAME")
-	//instance_name := "grpcInstancia"
-	client_host := os.Getenv("CLIENT_HOST")
-	//client_host := ":8080"
+	//instance_name := os.Getenv("NAME")
+	instance_name := "grpcInstancia"
+	//client_host := os.Getenv("CLIENT_HOST")
+	client_host := ":8080"
 
-	fmt.Println("Cliente ", instance_name ," listo!")
+	fmt.Println("Cliente ", instance_name, " listo!")
 	fmt.Println("Iniciando http server en ", client_host)
 
 	http.HandleFunc("/", http_server)
