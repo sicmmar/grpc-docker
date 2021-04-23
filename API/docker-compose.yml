@@ -1,0 +1,32 @@
+version: "2.2"
+services:  
+  apinode:
+    container_name: apinode
+    restart: always
+    build: ./nodejs
+    ports:
+      - "8080:8080"
+    links:
+      - db
+    networks:
+      - networkapi
+    volumes:
+      - /proc/:/elements/procs/
+
+  db:
+      image: 'mongo'
+      container_name: db
+      environment:
+          - PUID=1000
+          - PGID=1000
+      volumes:
+          - /home/barry/db/database:/data/db
+      ports:
+          - 27017:27017
+      restart: unless-stopped
+      networks:
+        - networkapi
+
+networks:
+  networkapi:
+    driver: "bridge"
