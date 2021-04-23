@@ -5,8 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 
 	user_pb "grpcserver/user.pb"
 
@@ -41,7 +43,7 @@ func (*servidor) RegUser(ctx context.Context, req *user_pb.UserRequest) (*user_p
 	pet := bytes.NewBuffer(cuerpoPeticion)
 
 	// ENVIAR DATOS A MONGODB
-	/*resp, err := http.Post("http://35.222.55.115:8080/nuevoRegistro", "application/json", pet)
+	resp, err := http.Post("http://35.222.55.115:8080/nuevoRegistro", "application/json", pet)
 	if err != nil {
 		log.Fatalln("Error al registrar nuevo: ", err)
 	}
@@ -51,13 +53,13 @@ func (*servidor) RegUser(ctx context.Context, req *user_pb.UserRequest) (*user_p
 	cuerpo, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalln(err)
-	}*/
+	}
 
 	// ENVIAR DATOS A REDIS
 
 	result := &user_pb.UserResponse{
-		//Resultado: string(cuerpo),
-		Resultado: "PRUEBA",
+		Resultado: string(cuerpo),
+		//Resultado: "PRUEBA",
 	}
 
 	return result, nil
