@@ -29,6 +29,8 @@ type usuario struct {
 }
 
 func (*servidor) RegUser(ctx context.Context, req *user_pb.UserRequest) (*user_pb.UserResponse, error) {
+	respuesta := ""
+
 	fmt.Println("Todo bien!")
 
 	cuerpoPeticion, _ := json.Marshal(usuario{
@@ -43,9 +45,9 @@ func (*servidor) RegUser(ctx context.Context, req *user_pb.UserRequest) (*user_p
 	pet := bytes.NewBuffer(cuerpoPeticion)
 
 	// ENVIAR DATOS A MONGODB
-	resp, err := http.Post("http://35.222.55.115:8080/nuevoRegistro", "application/json", pet)
+	resp, err := http.Post("http://34.66.140.170:8080/nuevoRegistro", "application/json", pet)
 	if err != nil {
-		log.Fatalln("Error al registrar nuevo: ", err)
+		log.Fatalln("Error al registrar en Mongo: ", err)
 	}
 
 	defer resp.Body.Close()
@@ -55,10 +57,24 @@ func (*servidor) RegUser(ctx context.Context, req *user_pb.UserRequest) (*user_p
 		log.Fatalln(err)
 	}
 
+	respuesta += string(cuerpo)
+
 	// ENVIAR DATOS A REDIS
+	resredis, erredis := http.Post("http://35.223.156.4:7019/nuevoRegistro", "application/json", bytes.NewBuffer(cuerpoPeticion))
+	if erredis != nil {
+		log.Fatalln("Error al registrar en Redis: ", erredis)
+	}
+
+	defer resredis.Body.Close()
+
+	cRedis, eredis := ioutil.ReadAll(resredis.Body)
+	if eredis != nil {
+		log.Fatalln(eredis)
+	}
+	respuesta += string(cRedis)
 
 	result := &user_pb.UserResponse{
-		Resultado: string(cuerpo),
+		Resultado: respuesta,
 		//Resultado: "PRUEBA",
 	}
 
