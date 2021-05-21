@@ -14,9 +14,9 @@ La estructura para poder llevar la información del cliente al servidor, es la s
 message Usuario {
     string name = 1;
     string location = 2;
-    string gender = 3;
-    int64 age = 4;
-    string vaccine_type = 5;
+    int64 age = 3;
+    string infectedtype = 4;
+    string state = 5;
 }
 ```
 
@@ -47,14 +47,14 @@ service userService {
 
 Estas estructuras de mensajería y el servicio de rpc se definen en un mismo archivo ```user.proto```, seguido este archivo se compila con el comando 
 ```zsh
-protoc --go_out=. --go-grpc_out=. user.proto
+protoc user.proto --go_out=plugins=grpc:.
 ```
 
-Al momento de compilar, se genera un archivo ```user.pb.go``` y otro ```user_grpc.pb.go``` el cuál genera el compilador escrito en lenguaje Go que utiliza propiamente grpc para el servicio de mensajería.
+Al momento de compilar, se genera un archivo ```user.pb.go``` el cuál genera el compilador escrito en lenguaje Go que utiliza propiamente grpc para el servicio de mensajería.
 
 ![](img/protob.png)
 
-> _Árbol de archivos de Protocol Buffers_
+_Árbol de archivos de Protocol Buffers_
 
 Este mismo procedimiento se realizó tanto para el [cliente](#cliente) como para el [servidor](#servidor), los cuáles se detallan a continuación.
 
@@ -73,13 +73,13 @@ func (*servidor) RegUser(ctx context.Context, req *user_pb.UserRequest) (*user_p
 - En la función ```RegUser``` se convierte el mensaje tipo ```UserRequest``` a formato JSON para que sea enviado a NodeJS
 ```golang
 cuerpoPeticion, _ := json.Marshal(usuario{
-		Name:        req.User.Name,
-		Location:    req.User.Location,
-		Gender:      req.User.Gender,
-		Age:         int(req.User.Age),
-		VaccineType: req.User.VaccineType,
-		Way:         "GRPC",
-	})
+                        name: req.User.Name,
+                        location: req.User.Location,
+                        age: int(req.User.Age),
+                        infectedtype: req.User.Infectedtype,
+                        state: req.User.State,
+                        way: "GRPC",
+                    })
 ```
 - Se envía el ```cuerpoPeticion``` a la URL del endpoint (```http://35.222.55.115:8080/nuevoRegistro```) encargado de almacenar un nuevo registro a la base de datos de Mongo
 ```go
@@ -141,13 +141,14 @@ c := user_pb.NewUserServiceClient(cc)
 ```go
 request := &user_pb.UserRequest{
     User: &user_pb.Usuario{
-        Name:        nameparam,
-        Location:    locationparam,
-        Gender:      genderparam,
-        Age:         ageparam,
-        VaccineType: vaccinetypeparam,
+        Name:         nameparam,
+        Location:     locationparam,
+        Age:          ageparam,
+        Infectedtype: infectedtypeparam,
+        State:        stateparam,
     },
 }
+
 fmt.Println("Enviando datos al servidor")
 res, err := c.RegUser(context.Background(), request)
 ```
@@ -188,12 +189,12 @@ registrarUsuario(us.Name, us.Location, us.Age, us.Infectedtype, us.State)
 
 **NOTA: para decodificar el JSON, se utilizó una estructura para manejar los atributos del JSON:**
 ```go
-type userStruct struct {
-	Name        string
-	Location    string
-	Gender      string
-	Age         int64
-	VaccineType string
+type userStruct struct{
+	Name string
+	Location string
+	Age int64
+	Infectedtype string
+	State string
 }
 ```
 

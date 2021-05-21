@@ -1,14 +1,14 @@
 syntax = "proto3";
 
 package user;
-option go_package = "user.pb/";
+option go_package = "/";
 
 message Usuario {
     string name = 1;
     string location = 2;
-    int64 age = 3;
-    string infectedtype = 4;
-    string state = 5;
+    string gender = 3;
+    int64 age = 4;
+    string vaccine_type = 5;
 }
 
 message userRequest {
